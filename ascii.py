@@ -1,19 +1,42 @@
+#use pip3 install ...
+
 from PIL import Image
 import os
 import re
+import cv2
+import numpy as np
 
 def main():
-    renderImage('cat.jpg', 256)
-
-def renderImage(file, maxSize):
     #get current directory
+    global dir
     dir = os.path.dirname(os.path.abspath(__file__))
 
-    #open target file & convert to grayscale
+    renderVideo('test.mp4', 256)
+    # renderImage('cat.jpg', 256)
+
+def renderVideo(file, maxSize=0):
+    vid = cv2.VideoCapture(str(dir + '/' + file))
+    while (vid.isOpened()):
+        # Capture frame-by-frame
+        # os.system('clear')
+        ret, frame = vid.read()
+        if (ret == True):
+            cv2_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            pil_frame = Image.fromarray(cv2_frame)
+            renderImage(pil_frame, 64)
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                break
+        else:
+            break
+    vid.release()
+    cv2.destroyAllWindows()
+
+def renderFile(file, maxSize=0):
     imagePath = dir + '/' + file
     image = Image.open(imagePath, 'r')
-    imageName = (re.split("/|.jpg", imagePath))
-    imageName = (imageName[len(imageName)-2])
+    renderImage(image, maxSize)
+
+def renderImage(image, maxSize=0):
 
     #grayscale range - 69 characters
     ### different gradients to choose from
@@ -23,11 +46,13 @@ def renderImage(file, maxSize):
     characters = """`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@"""
     scale = [*characters]
 
-
     #get image size
     size = image.size
     w = size[0]
     l = size[1]
+
+    if (maxSize == 0):
+        maxSize = max(w, l)
 
     newSizes = findNewDimensions(w, l, maxSize)
     image = image.convert('L')
