@@ -11,19 +11,25 @@ def main():
     global dir
     dir = os.path.dirname(os.path.abspath(__file__))
 
-    renderVideo('test.mp4', 256)
+    renderVideo('rvkcs.mp4', 64)
     # renderImage('cat.jpg', 256)
 
 def renderVideo(file, maxSize=0):
     vid = cv2.VideoCapture(str(dir + '/' + file))
+    width  = vid.get(3)  # float `width`
+    height = vid.get(4)  # float `height`
+
+    newSizes = findNewDimensions(width, height, maxSize)
+    
     while (vid.isOpened()):
         # Capture frame-by-frame
         # os.system('clear')
         ret, frame = vid.read()
         if (ret == True):
-            cv2_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            cv2_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            cv2_frame = cv2.resize(cv2_frame, (newSizes[0], newSizes[1]), fx = 0, fy = 0,interpolation = cv2.INTER_CUBIC)
             pil_frame = Image.fromarray(cv2_frame)
-            renderImage(pil_frame, 64)
+            renderPostImage(pil_frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
         else:
@@ -35,6 +41,47 @@ def renderFile(file, maxSize=0):
     imagePath = dir + '/' + file
     image = Image.open(imagePath, 'r')
     renderImage(image, maxSize)
+
+def renderPostImage(image):
+    characters = """`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@"""
+    scale = [*characters]
+
+    #get image size
+    size = image.size
+    newSizes = size
+    # image.save(dir + '/new_' + imageName + '.jpg')
+
+    toPixel = []
+    totalMax = image.getpixel((0, 0))
+    totalMin = image.getpixel((0, 0))
+
+    # print(newSizes)
+
+    for y in range(0, newSizes[1], 2):
+        row = []
+        for x in range(newSizes[0]):
+            pixel = image.getpixel((x, y))
+            row.append(pixel)
+            if (pixel > totalMax): totalMax = pixel
+            if (pixel < totalMin): totalMin = pixel
+        toPixel.append(row)
+
+    # for i in range(len(toPixel)):
+    #     print(toPixel[i])
+
+    eachRange = int((totalMax - totalMin)/len(characters))
+    ranges = []
+    for i in range(len(characters)):
+        ranges.append(totalMin + eachRange * i)
+
+    for a in range(len(toPixel)):
+        for b in range(len(toPixel[a])):
+            pixelValue = toPixel[a][b]
+            toPixel[a][b] = getShading(pixelValue, ranges, scale)
+
+    for i in range(len(toPixel)):
+        line = ''.join(toPixel[i])
+        print(line)
 
 def renderImage(image, maxSize=0):
 
