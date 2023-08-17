@@ -5,17 +5,35 @@ import os
 import re
 import cv2
 import numpy as np
+import sys
+
+DEFAULT_RES = 128
+VIDEO_EXT = ['.mp4', '.avi']
+IMAGE_EXT = ['.jpg', '.png']
 
 def main():
-    #get current directory
-    global dir
-    dir = os.path.dirname(os.path.abspath(__file__))
+    #input should be as absolute path
+    path = sys.argv[1]
+    _, ext = os.path.splitext(path)
+    res = 0
+    if (len(sys.argv) > 2):
+        res = sys.argv[2]
 
-    renderVideo('rvkcs.mp4', 64)
-    # renderImage('cat.jpg', 256)
+    if (ext in VIDEO_EXT):
+        renderVideo(path, res)
+    elif (ext in IMAGE_EXT):
+        renderFile(path, res)
+    else:
+        print("Invalid file path/type!")
 
-def renderVideo(file, maxSize=0):
-    vid = cv2.VideoCapture(str(dir + '/' + file))
+
+    # renderVideo('fractal.mp4', 128)
+    renderFile('/assets/drog.jpg', 256)
+
+def renderVideo(path, maxSize):
+    if (maxSize == 0):
+        maxSize = DEFAULT_RES
+    vid = cv2.VideoCapture(path)
     width  = vid.get(3)  # float `width`
     height = vid.get(4)  # float `height`
 
@@ -37,9 +55,10 @@ def renderVideo(file, maxSize=0):
     vid.release()
     cv2.destroyAllWindows()
 
-def renderFile(file, maxSize=0):
-    imagePath = dir + '/' + file
-    image = Image.open(imagePath, 'r')
+def renderFile(path, maxSize):
+    if (maxSize == 0):
+        maxSize = DEFAULT_RES
+    image = Image.open(path, 'r')
     renderImage(image, maxSize)
 
 def renderPostImage(image):
