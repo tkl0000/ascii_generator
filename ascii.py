@@ -2,9 +2,7 @@
 
 from PIL import Image
 import os
-import re
 import cv2
-import numpy as np
 import sys
 
 DEFAULT_RES = 128
@@ -17,7 +15,7 @@ def main():
     _, ext = os.path.splitext(path)
     res = 0
     if (len(sys.argv) > 2):
-        res = sys.argv[2]
+        res = int(sys.argv[2])
 
     if (ext in VIDEO_EXT):
         renderVideo(path, res)
@@ -25,10 +23,6 @@ def main():
         renderFile(path, res)
     else:
         print("Invalid file path/type!")
-
-
-    # renderVideo('fractal.mp4', 128)
-    renderFile('/assets/drog.jpg', 256)
 
 def renderVideo(path, maxSize):
     if (maxSize == 0):
